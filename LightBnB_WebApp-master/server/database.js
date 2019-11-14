@@ -103,6 +103,11 @@ exports.getAllReservations = getAllReservations;
 
 /// Properties
 
+
+
+
+
+
 /**
  * Get all properties.
  * @param {{}} options An object containing query options.
@@ -111,7 +116,7 @@ exports.getAllReservations = getAllReservations;
  * 
  * 
  */
-const getAllProperties = function (options, limit = 10) {
+const getAllProperties = function (options, limit = 100) {
   // 1
   const queryParams = [];
   // 2
@@ -120,7 +125,6 @@ const getAllProperties = function (options, limit = 10) {
   FROM properties
   JOIN property_reviews ON properties.id = property_id
   `;
-
   // 3
   if (options.city) {
     queryParams.push(`%${options.city}%`);
@@ -144,11 +148,7 @@ const getAllProperties = function (options, limit = 10) {
       queryString += `AND properties.cost_per_night/100 <= $${queryParams.length} `;
     }
     }
-
-    
-
   // 4
-  
   queryString += `GROUP BY properties.id`
   
   if (options.minimum_rating){
@@ -174,15 +174,21 @@ const getAllProperties = function (options, limit = 10) {
 exports.getAllProperties = getAllProperties;
 
 
+
 /**
  * Add a property to the database
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function (property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const {owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces,number_of_bathrooms, number_of_bedrooms} = property
+  
+  const query = {
+    text: `INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces,number_of_bathrooms, number_of_bedrooms)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+    values: [owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces,number_of_bathrooms, number_of_bedrooms]
+  }
+  return pool.query(query)
+
 }
 exports.addProperty = addProperty;
